@@ -21,16 +21,17 @@ namespace EFCore.Sample.API.Controllers
             _context = context;
         }
 
-        [HttpGet(Name = "GetUserById")]
-        public async Task<IActionResult> Get(long? id)
+        [HttpGet]
+        [Route("[action]/{email}")]
+        public async Task<IActionResult> GetUserByEmailId(string? email)
         {
-            if (id == null || _context.Users == null)
+            if (email == null || _context.Users == null)
             {
                 return NotFound();
             }
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Email == email);
             if (user == null)
             {
                 return NotFound();
@@ -39,17 +40,26 @@ namespace EFCore.Sample.API.Controllers
             return Ok(user);
         }
 
-   
-   
-       
-        
-        [HttpPost(Name = "SignUp")]
+
+        [HttpGet]
+        [Route("[action]")]
+        public async Task<IActionResult> Get()
+        {
+
+            var user = await _context.Users.ToListAsync();
+
+            return Ok(user);
+        }
+
+
+        [HttpPost]
+        [Route("[action]")]
         public async Task<IActionResult> SignUp([Bind("EmployeeId,FirstName,LastName,Email,Password")] User user)
         {
             if (ModelState.IsValid)
             {
 
-                user.Password=  BCrypt.Net.BCrypt.HashPassword(user.Password);
+                user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
                 _context.Add(user);
                 await _context.SaveChangesAsync();
                 return Ok();
@@ -58,33 +68,30 @@ namespace EFCore.Sample.API.Controllers
         }
 
 
-     
 
 
-        [HttpPut(Name = "UpdateUser")]
-       
-        public async Task<IActionResult> UpdateUser(long id, [Bind("EmployeeId,FirstName,LastName,Email")] User user)
+
+        [HttpPut]
+        [Route("[action]")]
+        public async Task<IActionResult> UpdateUser(string email, [Bind("EmployeeId,FirstName,LastName")] User user)
         {
-            if (id != user.Id)
-            {
-                return NotFound();
-            }
+            
 
             if (ModelState.IsValid)
             {
                 try
                 {
                     var existinguser = await _context.Users
-              .FirstOrDefaultAsync(m => m.Id == id);
+              .FirstOrDefaultAsync(m => m.Email == email);
 
-                    if(existinguser == null) {
+                    if (existinguser == null)
+                    {
                         return NotFound();
                     }
                     existinguser.FirstName = user.FirstName;
-                    existinguser.LastName = user.LastName;
-                    existinguser.Email = user.Email;
+                    existinguser.LastName = user.LastName;                  
                     existinguser.EmployeeId = user.EmployeeId;
-                    _context.Update(user);
+                    _context.Update(existinguser);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -103,29 +110,31 @@ namespace EFCore.Sample.API.Controllers
             return BadRequest();
         }
 
-     
 
-        [HttpDelete, ActionName("Delete")]
-       
-        public async Task<IActionResult> DeleteConfirmed(long id)
+
+        [HttpDelete]
+        [Route("[action]/{email}")]
+        public async Task<IActionResult> Delete(string email)
         {
-            if (_context.Users == null)
+
+            var existinguser = await _context.Users
+              .FirstOrDefaultAsync(m => m.Email == email);
+
+            if (existinguser != null)
             {
-                return Problem("User not exist with given id.");
+                _context.Users.Remove(existinguser);
             }
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
+            else
             {
-                _context.Users.Remove(user);
+                return Problem("User not exist with given Email id.");
             }
-            
             await _context.SaveChangesAsync();
             return Ok();
         }
 
         private bool UserExists(long id)
         {
-          return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

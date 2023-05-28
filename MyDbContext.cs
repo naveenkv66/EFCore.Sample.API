@@ -7,12 +7,12 @@ namespace EFCore.Sample.API
     {
         protected readonly IConfiguration Configuration;
 
-        public MyDbContext(IConfiguration configuration, DbContextOptions<MyDbContext> options) : base(options) 
+        public MyDbContext(IConfiguration configuration, DbContextOptions<MyDbContext> options) : base(options)
         {
             Configuration = configuration;
         }
 
-  
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {

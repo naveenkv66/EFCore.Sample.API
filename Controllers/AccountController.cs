@@ -1,5 +1,6 @@
 ﻿using EFCore.Sample.API.DataModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
@@ -18,16 +19,17 @@ namespace EFCore.Sample.API.Controllers
             _context = context;
         }
 
-        [HttpPost(Name = "SignIn")]
+        [HttpPost]
+        [Route("[action]")]
         public async Task<IActionResult> Signin([Bind("Email,Password")] UserDto userDto)
         {
             if (ModelState.IsValid)
             {
 
-                var passwordHash = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+               
                 var user = await _context.Users
                .FirstOrDefaultAsync(m => m.Email == userDto.Email);
-                if (user != null && user.Password == passwordHash)
+                if (user != null && BCrypt.Net.BCrypt.Verify(userDto.Password, user.Password))
                 {
                     return Ok("Authentication Success");
                 }
