@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EFCore.Sample.API;
 using EFCore.Sample.API.DataModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EFCore.Sample.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UsersController : ControllerBase

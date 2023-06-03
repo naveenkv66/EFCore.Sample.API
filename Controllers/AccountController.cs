@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Framework;
 using Microsoft.EntityFrameworkCore;
+using OneSanofi.API.Services;
 using System.ComponentModel;
 
 namespace EFCore.Sample.API.Controllers
@@ -13,10 +14,12 @@ namespace EFCore.Sample.API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly MyDbContext _context;
+        private readonly IJWTTokenService jWTTokenService;
 
-        public AccountController(MyDbContext context)
+        public AccountController(MyDbContext context, IJWTTokenService jWTTokenService)
         {
             _context = context;
+            this.jWTTokenService = jWTTokenService;
         }
 
         [HttpPost]
@@ -31,7 +34,8 @@ namespace EFCore.Sample.API.Controllers
                .FirstOrDefaultAsync(m => m.Email == userDto.Email);
                 if (user != null && BCrypt.Net.BCrypt.Verify(userDto.Password, user.Password))
                 {
-                    return Ok("Authentication Success");
+                    var token =  this.jWTTokenService.GenerateAccessToken(user);
+                    return Ok(token);
                 }
                 return Unauthorized();
 
